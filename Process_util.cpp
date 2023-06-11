@@ -1,4 +1,5 @@
 #include "Process.hpp"
+#include <fstream>
 
 int	Process::getPid(void) const
 {
@@ -69,4 +70,63 @@ int	Process::getSleep(void)
 void	Process::changeSleep(int time)
 {
 	this->sleeptime = time;
+}
+
+void	Process::printMemory(ofstream &ofile) const
+{
+	// 9. virtual memory
+	ofile << "9. virtual memory:" << endl;
+	int i = 0;
+	for (int j = 0; j < 8; ++j) {
+		ofile << "|";
+		for (int k = 0; k < 4; ++k) {
+			if (!(this->vmemory).getIsAlloc(i))
+				ofile << "-";
+			else
+				ofile << (this->vmemory).getPageId(i);
+			if (k != 3)
+				ofile << " ";
+			i++;
+		}
+		ofile << "|";
+	}
+	ofile << endl;
+
+	// 10. page table
+	ofile << "10. page table:" << endl;
+	i = 0;
+	for (int j = 0; j < 8; ++j) {
+		ofile << "|";
+		for (int k = 0; k < 4; ++k) {
+			if (!(this->vmemory).getValid(i))
+				ofile << "-";
+			else
+				ofile << (this->vmemory).getAddress(i);
+			if (k != 3)
+				ofile << " ";
+			i++;
+		}
+		ofile << "|";
+	}
+	ofile << endl;
+
+	i = 0;
+	for (int j = 0; j < 8; ++j) {
+		ofile << "|";
+		for (int k = 0; k < 4; ++k) {
+			if (!(this->vmemory).getIsAlloc(i))
+				ofile << "-";
+			else {
+				if ((this->vmemory).getPermission(i))
+					ofile << "W";
+				else
+					ofile << "R";
+			}
+			if (k != 3)
+				ofile << " ";
+			i++;
+		}
+		ofile << "|";
+	}
+	ofile << endl;
 }

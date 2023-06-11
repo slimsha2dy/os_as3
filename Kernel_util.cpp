@@ -82,6 +82,32 @@ void	Kernel::printState(ofstream &ofile) const
 		(this->terProcess)->printInfo(ofile);
 	else
 		ofile << "none" << endl;
+
+	// 8. physical memory
+	ofile << "8. physical memory:" << endl;
+	int i = 0;
+	for (int j = 0; j < 4; ++j) {
+		ofile << "|";
+		for (int k = 0; k < 4; ++k) {
+			if (!(this->pmemory).getValid(i))
+				ofile << "-";
+			else
+				ofile << (this->pmemory).getFramePid(i) << "(" << (this->pmemory).getFramePageid(i) << ")";
+			if (k != 3)
+				ofile << " ";
+			i++;
+		}
+		ofile << "|";
+	}
+	ofile << endl;
+	// 9. virtual memory
+	// 10. page table
+	if (!this->tmp) {
+		ofile << endl;
+		return ;
+	}
+	this->tmp->printMemory(ofile);
+
 	ofile << endl;
 }
 
@@ -155,4 +181,14 @@ Process	*Kernel::popWq(Process *p)
 	if (tmp->getNext() == 0)
 		this->tailWq = tmp;
 	return (ret);
+}
+
+int Kernel::getCycle(void) const
+{
+	return (this->cycle);
+}
+
+void	Kernel::plusCycle(void)
+{
+	this->cycle++;
 }

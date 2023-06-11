@@ -1,6 +1,7 @@
 #ifndef	PROCESS_HPP
 #define	PROCESS_HPP
 
+#include "Memory.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -22,6 +23,12 @@ class	Process
 		int		runtime;	// remaining time to run
 		int		sleeptime;	// remaining time to sleep
 
+		// Memory Part
+		Vmemory vmemory;	// virtual memory of process
+		int	last_pageid;	// last page id of process
+		int last_allocid;	// last allocation id of process
+		//
+
 	public:
 		Process();
 		~Process();
@@ -33,6 +40,7 @@ class	Process
 		void	run(string arg);
 		void	exit(void);
 		void	sleep(string arg);
+		void	allocVmem(void);
 		
 		// Process_util.cpp
 		int		getPid(void) const;
@@ -48,6 +56,10 @@ class	Process
 		void	subSleep(void);	
 		int		getSleep(void);
 		void	changeSleep(int time);
+		// Memory
+		Vmemory	&getVmemory(void);
+		int		getAllocid(void) const;
+		void	printMemory(ofstream &ofile) const;
 };
 
 #endif

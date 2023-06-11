@@ -1,6 +1,6 @@
 #include "Kernel.hpp"
 
-Kernel::Kernel(string pname)
+Kernel::Kernel(string pname, string policy)
 {
 	this->headRq = 0;
 	this->tailRq = 0;
@@ -16,6 +16,9 @@ Kernel::Kernel(string pname)
 	this->kstate = "boot";
 	this->last_pid = 1;
 	this->exitCount = 0;
+	this->cycle = 1;
+
+	this->policy = policy;
 } 
 
 Kernel::~Kernel(void)
@@ -166,6 +169,15 @@ void	Kernel::syscall(void)
 	// wait
 	else if (this->syscallCommand == "wait")
 		this->wait();
+
+	// memory allocate
+	else if (this->syscallCommand == "memory_allocate")
+	{
+		this->memory_allocate();
+		(this->tmp)->changeState("ready");
+		this->pushRq(this->tmp);
+		this->tmp = 0;
+	}
 	this->syscallFlag = 0;
 }
 
@@ -206,4 +218,10 @@ void	Kernel::wait(void)
 		this->pushRq(this->tmp);
 		this->tmp = 0;
 	}
+}
+
+void	Kernel::memory_allocate(void)
+{
+	this->tmp->allocVmem();
+	(this->pmemory).allocPmem(stoi(this->tmp->getArgument()), this->tmp->getVmemory(), this->tmp->getAllocid(), this->tmp->getPid(), this->policy, this->cycle);
 }

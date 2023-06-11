@@ -15,6 +15,11 @@ Process::Process(string pname)
 	this->runtime = 0;
 	this->sleeptime = 0;
 
+	// memory
+	this->last_pageid = -1;
+	this->last_allocid = -1;
+	// memory
+
 	ifstream	file(pname);
 	int	length = 0;				// number of lines in the file(pname)
 	string	line;
@@ -47,6 +52,11 @@ Process::Process(string input, string pname, int pid, int ppid)
 	this->runtime = 0;
 	this->sleeptime = 0;
 
+	// memory
+	this->last_pageid = -1;
+	this->last_allocid = -1;
+	// memory
+
 	ifstream	file(input + pname);
 	int	length = 0;				// number of lines in the file(pname)
 	string	line;
@@ -74,15 +84,16 @@ string	Process::readCommand(void)
 	{
 		this->run(this->tmpCode[1]);
 	}
-	if (this->tmpCode[0] == "exit")
+	else if (this->tmpCode[0] == "exit")
 	{
 		this->exit();
 	}
-	if (this->tmpCode[0] == "sleep")
+	else if (this->tmpCode[0] == "sleep")
 	{
 		this->sleep(this->tmpCode[1]);
 	}
-	if (this->tmpCode[0] == "fork_and_exec" || this->tmpCode[0] == "wait")
+	else if (this->tmpCode[0] == "fork_and_exec" || this->tmpCode[0] == "wait" \
+			|| this->tmpCode[0] == "memory_allocate")
 	{
 		this->pc++;
 	}
@@ -109,4 +120,19 @@ void	Process::sleep(string arg)
 {
 	this->sleeptime = stoi(arg);
 	this->pc++;
+}
+
+void	Process::allocVmem(void)
+{
+	(this->vmemory).allocVmem(stoi(this->tmpCode[1]), this->last_allocid, this->last_pageid);
+}
+
+Vmemory	&Process::getVmemory(void)
+{
+	return (this->vmemory);
+}
+
+int Process::getAllocid(void) const
+{
+	return (this->last_allocid);
 }

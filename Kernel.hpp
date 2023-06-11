@@ -2,6 +2,7 @@
 #define	KERNEL_HPP
 
 #include "Process.hpp"
+#include "Memory.hpp"
 
 class	Kernel
 {
@@ -21,9 +22,15 @@ class	Kernel
 		string	syscallCommand;	// syscall command
 		int		last_pid;
 		int		exitCount;	// if all processes exited
+		int 	cycle;
+		
+		// Memory Part
+		Pmemory pmemory;
+		string	policy;
+		//
 
 	public:
-		Kernel(string pname);
+		Kernel(string pname, string policy);
 		~Kernel(void);
 
 		// Kernel.cpp
@@ -35,6 +42,8 @@ class	Kernel
 		void	scheduleIdle(void);	// excute scheduler or idle
 		void	syscall(void);
 		void	wait(void);
+		// Memory
+		void	memory_allocate(void);
 
 		// Kernel_util.cpp
 		void	changeKstate(const string kstate);
@@ -46,6 +55,8 @@ class	Kernel
 		void	pushWq(Process *p);
 		Process	*popWq(void);
 		Process	*popWq(Process *p);	// pop process in the middle of the queue
+		int		getCycle(void) const;
+		void	plusCycle(void);	// cycle++
 };
 
 #endif

@@ -3,13 +3,12 @@
 int	main(int argc, char **argv)
 {
 	string	str = argv[1];
-	Kernel	kernel(str);
+	Kernel	kernel(str, argv[2]);
 	ofstream	ofile;
 	ofile.open("result", std::ios::out);
 	ofile << "[cycle #0]" << endl;
 	kernel.printState(ofile);
 
-	int	cycle = 1;
 	while (!kernel.getallExit())
 	{		
 		if (kernel.getSysflag())
@@ -18,9 +17,9 @@ int	main(int argc, char **argv)
 		kernel.updateState();
 		kernel.updateRq();
 		kernel.excute();
-		ofile << "[cycle #" << cycle << "]" << endl;
+		ofile << "[cycle #" << kernel.getCycle() << "]" << endl;
 		kernel.printState(ofile);
-		++cycle;
+		kernel.plusCycle();
 	}
 	return (0);
 }

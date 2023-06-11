@@ -1,44 +1,6 @@
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-fork_and_exec program1
-wait
-fork_and_exec program2
-fork_and_exec program1
-fork_and_exec program2
-run 10
-wait
-sleep 5
-wait
-run 5
-wait
-sleep 5
-wait
-wait
-run 10
-wait
-wait
-wait
-wait
-run 5
-wait
-wait
-wait
-wait
-sleep 1
-wait
-wait
-wait
-wait
+run 3
+memory_allocate 4
+memory_allocate 6
+memory_allocate 8
+memory_allocate 5
 exit

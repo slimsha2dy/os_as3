@@ -1,7 +1,7 @@
 # Variable
-NAME		= project2
+NAME		= project3
 CXX			= g++
-CXXFLAGS	= -std=c++14
+CXXFLAGS	= -std=c++14 # -g -fsanitize=address
 RM			= rm -rf
 
 # srcs
@@ -9,7 +9,9 @@ SRCS =	main.cpp \
 		Kernel.cpp \
 		Kernel_util.cpp \
 		Process.cpp \
-		Process_util.cpp
+		Process_util.cpp \
+		Memory.cpp \
+		Pmemory.cpp
 OBJS = $(SRCS:.cpp=.o)
 
 # rules
