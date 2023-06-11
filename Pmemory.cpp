@@ -23,7 +23,7 @@ void	Pmemory::allocPmem(int num, Vmemory &vmemory, int allocid, int pid, string 
 	// count not allocated frame
 	int count = 0;
 	for (int i = 0; i < 16; ++i) {
-		if (this->valid[i])
+		if (!this->valid[i])
 			count++;
 	}
 
@@ -64,9 +64,11 @@ void	Pmemory::findVictim(int num, string policy, Vmemory &vmemory)
 int	Pmemory::fifo(void)
 {
 	int tmp = 0;
-	int i = 1;
+    while (!this->valid[tmp])
+        tmp++;
+	int i = tmp + 1;
 	while (i < 16) {
-		if (this->allocTime[tmp] > this->allocTime[i])
+		if (this->valid[i] && this->allocTime[tmp] > this->allocTime[i])
 			tmp = i;
 		++i;
 	}
@@ -76,10 +78,12 @@ int	Pmemory::fifo(void)
 
 int	Pmemory::lru(void)
 {
-	int tmp = 0;
-	int i = 1;
+    int tmp = 0;
+    while (!this->valid[tmp])
+        tmp++;
+    int i = tmp + 1;
 	while (i < 16) {
-		if (this->accessTime[tmp] > this->accessTime[i])
+		if (this->valid[i] && this->accessTime[tmp] > this->accessTime[i])
 			tmp = i;
 		++i;
 	}
@@ -89,15 +93,17 @@ int	Pmemory::lru(void)
 
 int	Pmemory::lmfu(string policy)
 {
-	int tmp = 0;
-	int i = 1;
+    int tmp = 0;
+    while (!this->valid[tmp])
+        tmp++;
+    int i = tmp + 1;
 	while (i < 16) {
 		if (policy == "lfu") {
-			if (this->usedCount[tmp] > this->usedCount[i])
+			if (this->valid[i] && this->usedCount[tmp] > this->usedCount[i])
 				tmp = i;
 		}
 		else {
-			if (this->usedCount[tmp] < this->usedCount[i])
+			if (this->valid[i] && this->usedCount[tmp] < this->usedCount[i])
 				tmp = i;
 		}
 		++i;
@@ -124,4 +130,9 @@ bool Pmemory::getValid(int i) const
 void Pmemory::plusUsedCount(int i)
 {
 	this->usedCount[i]++;
+}
+
+void Pmemory::invalid(int i)
+{
+    this->valid[i] = 0;
 }

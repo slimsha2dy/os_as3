@@ -101,3 +101,46 @@ int	Vmemory::findAddress(int add) const
 	}
 	return i;
 }
+
+Vmemory& Vmemory::operator=(const Vmemory& other)
+{
+    if (this == &other)
+        return *this;
+    for (int i = 0; i < 32; ++i) {
+        this->is_alloc[i] = other.is_alloc[i];
+        this->pageid[i] = other.pageid[i];
+        this->allocid[i] = other.allocid[i];
+        this->valid[i] = other.valid[i];
+        this->address[i] = other.address[i];
+        this->permission[i] = 0;
+    }
+    return *this;
+}
+
+void Vmemory::permToread(void)
+{
+    for (int i = 0; i < 32; ++i) {
+        this->permission[i] = 0;
+    }
+}
+
+void Vmemory::permTowrite(int allocid)
+{
+    for (int i = 0; i < 32; ++i) {
+        if (this->is_alloc[i] && this->allocid[i] == allocid)
+            this->permission[i] = 1;
+    }
+}
+
+vector<int> Vmemory::memoryRelease(int allocid, int pid)
+{
+    vector<int> paddress;
+    for (int i = 0; i < 32; ++i) {
+        if (this->is_alloc[i] && this->allocid[i] == allocid) {
+            this->is_alloc[i] = 0;
+            if (this->valid[i] && (this->permission[i] == 1 || pid == 1))
+                paddress.push_back(this->address[i]);
+        }
+    }
+    return (paddress);
+}

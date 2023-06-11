@@ -160,8 +160,9 @@ void	Kernel::syscall(void)
 	// fork_and_exec
 	else if (this->syscallCommand == "fork_and_exec")
 	{
-		this->newProcess = new Process(this->input, (this->tmp)->getArgument(), ++this->last_pid, (this->tmp)->getPid());
-		(this->tmp)->changeState("ready");
+		this->newProcess = new Process(this->input, (this->tmp)->getArgument(), ++this->last_pid, (this->tmp)->getPid(), (this->tmp)->getVmemory(), (this->tmp)->getLastPage(), (this->tmp)->getLastAlloc());
+        (this->tmp->getVmemory()).permToread();
+        (this->tmp)->changeState("ready");
 		this->pushRq(this->tmp);
 		this->tmp = 0;
 	}
@@ -178,6 +179,16 @@ void	Kernel::syscall(void)
 		this->pushRq(this->tmp);
 		this->tmp = 0;
 	}
+
+    // memory release
+    else if (this->syscallCommand == "memory_release")
+    {
+        this->memory_release();
+        (this->tmp)->changeState("ready");
+        this->pushRq(this->tmp);
+        this->tmp = 0;
+    }
+
 	this->syscallFlag = 0;
 }
 
@@ -222,6 +233,29 @@ void	Kernel::wait(void)
 
 void	Kernel::memory_allocate(void)
 {
+    // allocate to virtual memory
 	this->tmp->allocVmem();
+    // allocate to physical memory
 	(this->pmemory).allocPmem(stoi(this->tmp->getArgument()), this->tmp->getVmemory(), this->tmp->getAllocid(), this->tmp->getPid(), this->policy, this->cycle);
+}
+
+void    Kernel::memory_release(void)
+{
+    Process *buf = this->headRq;
+    int id = stoi(this->tmp->getArgument());
+    // R -> W
+    while (buf)
+    {
+        (buf->getVmemory()).permTowrite(id);
+        buf = buf->getNext();
+    }
+    buf = this->headWq;
+    while (buf)
+    {
+        (buf->getVmemory()).permTowrite(id);
+        buf = buf->getNext();
+    }
+
+    // memory release
+    this->tmp->memoryRelease(id, this->pmemory);
 }

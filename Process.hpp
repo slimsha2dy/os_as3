@@ -33,7 +33,7 @@ class	Process
 		Process();
 		~Process();
 		Process(string pname);
-		Process(string input, string pname, int pid, int ppid);
+		Process(string input, string pname, int pid, int ppid, Vmemory &vmemory, int lastPageid, int lastAllocid);
 
 		// Process.cpp
 		string	readCommand(void);
@@ -60,6 +60,9 @@ class	Process
 		Vmemory	&getVmemory(void);
 		int		getAllocid(void) const;
 		void	printMemory(ofstream &ofile) const;
+        int     getLastPage(void) const;
+        int     getLastAlloc(void) const;
+        void    memoryRelease(int allocid, Pmemory &pmemory);
 };
 
 #endif

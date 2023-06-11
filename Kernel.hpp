@@ -44,6 +44,7 @@ class	Kernel
 		void	wait(void);
 		// Memory
 		void	memory_allocate(void);
+        void    memory_release(void);
 
 		// Kernel_util.cpp
 		void	changeKstate(const string kstate);

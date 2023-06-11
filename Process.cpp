@@ -41,7 +41,7 @@ Process::~Process()
 	delete[] this->code;
 }
 
-Process::Process(string input, string pname, int pid, int ppid)
+Process::Process(string input, string pname, int pid, int ppid, Vmemory& vmemory, int lastPageid, int lastAllocid)
 {
 	this->pname = pname;
 	this->pid = pid;
@@ -53,8 +53,9 @@ Process::Process(string input, string pname, int pid, int ppid)
 	this->sleeptime = 0;
 
 	// memory
-	this->last_pageid = -1;
-	this->last_allocid = -1;
+	this->last_pageid = lastPageid;
+	this->last_allocid = lastAllocid;
+    this->vmemory = vmemory;
 	// memory
 
 	ifstream	file(input + pname);
@@ -93,7 +94,7 @@ string	Process::readCommand(void)
 		this->sleep(this->tmpCode[1]);
 	}
 	else if (this->tmpCode[0] == "fork_and_exec" || this->tmpCode[0] == "wait" \
-			|| this->tmpCode[0] == "memory_allocate")
+			|| this->tmpCode[0] == "memory_allocate" || this->tmpCode[0] == "memory_release")
 	{
 		this->pc++;
 	}
@@ -135,4 +136,12 @@ Vmemory	&Process::getVmemory(void)
 int Process::getAllocid(void) const
 {
 	return (this->last_allocid);
+}
+
+void    Process::memoryRelease(int allocid, Pmemory &pmemory)
+{
+    vector<int> paddress = (this->vmemory).memoryRelease(allocid, this->pid);
+    for (auto& i : paddress) {
+        pmemory.invalid(i);
+    }
 }

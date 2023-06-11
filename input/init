@@ -1,6 +1,6 @@
-run 3
-memory_allocate 4
-memory_allocate 6
+memory_allocate 10
 memory_allocate 8
 memory_allocate 5
+fork_and_exec program1
+wait
 exit

@@ -98,7 +98,7 @@ void	Process::printMemory(ofstream &ofile) const
 	for (int j = 0; j < 8; ++j) {
 		ofile << "|";
 		for (int k = 0; k < 4; ++k) {
-			if (!(this->vmemory).getValid(i))
+			if (!(this->vmemory).getValid(i) || !(this->vmemory).getIsAlloc(i))
 				ofile << "-";
 			else
 				ofile << (this->vmemory).getAddress(i);
@@ -129,4 +129,13 @@ void	Process::printMemory(ofstream &ofile) const
 		ofile << "|";
 	}
 	ofile << endl;
+}
+
+int     Process::getLastPage(void) const
+{
+    return (this->last_pageid);
+}
+int     Process::getLastAlloc(void) const
+{
+    return (this->last_allocid);
 }

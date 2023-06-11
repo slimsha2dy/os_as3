@@ -22,6 +22,7 @@ class	Pmemory	// physical memory class
 		int fifo(void);
 		int lru(void);
 		int lmfu(string policy);
+		void invalid(int i);
 
 		int	getFramePid(int i) const;
 		int getFramePageid(int i) const;

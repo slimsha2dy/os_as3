@@ -3,8 +3,11 @@
 
 #include <string>
 #include <iostream>
+#include <vector>
 
 using namespace std;
+
+class   Pmemory;
 
 class	Vmemory	// virtual memory and page table class
 {
@@ -26,9 +29,13 @@ class	Vmemory	// virtual memory and page table class
 		int getPageId(int i) const;
 		bool getValid(int i) const;
 		bool getPermission(int i) const;
-		int getAddress(int i) const;
-		int findAddress(int add) const;
-		void unvalid(int i);
+		int getAddress(int i) const;    // get address of index i
+		int findAddress(int add) const; // get index that have a "i" physical address
+		void unvalid(int i);    // invalidate i index
+        Vmemory& operator=(const Vmemory& other);
+        void permToread(void);  // change all permission to read
+        void permTowrite(int allocid); // change permission to write of the allocate id
+        vector<int> memoryRelease(int allocid, int pid);
 };
 
 #endif
