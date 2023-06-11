@@ -1,7 +1,7 @@
 #ifndef	PROCESS_HPP
 #define	PROCESS_HPP
 
-#include "Memory.hpp"
+#include "Pmemory.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>

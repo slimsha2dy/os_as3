@@ -2,7 +2,7 @@
 #define	KERNEL_HPP
 
 #include "Process.hpp"
-#include "Memory.hpp"
+#include "Pmemory.hpp"
 
 class	Kernel
 {
