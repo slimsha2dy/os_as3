@@ -22,8 +22,12 @@ void	Kernel::printState(ofstream &ofile) const
 
 	// 2. command
 	ofile << "2. command: " ;
-	if (this->mode == "kernel")
-		ofile << this->kstate << endl;
+	if (this->mode == "kernel") {
+        if (this->kstate == "system call" && (this->syscallCommand == "page_fault" || this->syscallCommand == "protection_fault"))
+            ofile << "fault" << endl;
+        else
+            ofile << this->kstate << endl;
+    }
 	else
 	{
 		ofile << (this->tmp)->getCommand();

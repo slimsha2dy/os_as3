@@ -40,7 +40,6 @@ class	Process
 		void	run(string arg);
 		void	exit(void);
 		void	sleep(string arg);
-		void	allocVmem(void);
 		
 		// Process_util.cpp
 		int		getPid(void) const;
@@ -57,12 +56,15 @@ class	Process
 		int		getSleep(void);
 		void	changeSleep(int time);
 		// Memory
+        void	allocVmem(void);
 		Vmemory	&getVmemory(void);
 		int		getAllocid(void) const;
 		void	printMemory(ofstream &ofile) const;
         int     getLastPage(void) const;
         int     getLastAlloc(void) const;
         void    memoryRelease(int allocid, Pmemory &pmemory);
+        int     memory_read(int arg);
+        int     memory_write(int arg);
 };
 
 #endif

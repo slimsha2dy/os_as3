@@ -1,6 +1,11 @@
-memory_allocate 10
-memory_allocate 8
-memory_allocate 5
+memory_allocate 16
 fork_and_exec program1
+memory_write 0
+wait
+memory_read 1
+fork_and_exec program2
+fork_and_exec program3
+memory_allocate 1
+wait
 wait
 exit

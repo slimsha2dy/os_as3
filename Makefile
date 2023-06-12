@@ -24,7 +24,7 @@ $(NAME) : $(OBJS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean : 
-	$(RM) $(OBJS) $(NAME)
+	$(RM) $(OBJS)
 
 re : clean all
 

@@ -45,6 +45,9 @@ class	Kernel
 		// Memory
 		void	memory_allocate(void);
         void    memory_release(void);
+        void    memory_release_all(void);
+        void    page_fault(void);
+        void    protection_fault(void);
 
 		// Kernel_util.cpp
 		void	changeKstate(const string kstate);

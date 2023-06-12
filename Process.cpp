@@ -98,6 +98,19 @@ string	Process::readCommand(void)
 	{
 		this->pc++;
 	}
+    else if (this->tmpCode[0] == "memory_read")
+    {
+        if (this->memory_read(stoi(this->tmpCode[1])))
+            return ("page_fault");
+    }
+    else if (this->tmpCode[0] == "memory_write")
+    {
+        int flag = this->memory_write(stoi(this->tmpCode[1]));
+        if (flag == 0)
+            return ("page_fault");
+        else if (flag == -1)
+            return ("protection_fault");
+    }
 	return (this->tmpCode[0]);
 }
 
@@ -144,4 +157,27 @@ void    Process::memoryRelease(int allocid, Pmemory &pmemory)
     for (auto& i : paddress) {
         pmemory.invalid(i);
     }
+}
+
+int Process::memory_read(int arg)
+{
+    int idx = (this->vmemory).findPageId(arg);
+    pc++;
+    if ((this->vmemory).getValid(idx)) {
+        return (0);
+    }
+    return (1);
+}
+
+int Process::memory_write(int arg)
+{
+    int idx = (this->vmemory).findPageId(arg);
+    pc++;
+    if (!(this->vmemory).getPermission(idx)) {
+        return (-1);    // Protection fault
+    }
+    else if (!(this->vmemory).getValid(idx)) {
+        return (0);     // page fault
+    }
+    return (1);
 }

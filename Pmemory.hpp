@@ -3,6 +3,8 @@
 
 #include "Memory.hpp"
 
+class   Process;
+
 class	Pmemory	// physical memory class
 {
 	private:
@@ -17,8 +19,9 @@ class	Pmemory	// physical memory class
 		Pmemory();
 		~Pmemory();
 
-		void allocPmem(int num, Vmemory &vmemory, int allocid, int pid, string policy, int cycle);
-		void findVictim(int num, string policy, Vmemory &vmemory);	// find victim and return index
+		void allocPmem(int num, Process *tmp, Process *headRq, Process *headWq, int allocid, int pid, string policy, int cycle);
+        void faultHandle(Process *tmp, Process *headRq, Process *headWq, int pid, string policy, int cycle, int pageid);
+		void findVictim(int num, string policy, Process *tmp, Process *headRq, Process *headWq);	// find victim and return index
 		int fifo(void);
 		int lru(void);
 		int lmfu(string policy);
@@ -28,6 +31,7 @@ class	Pmemory	// physical memory class
 		int getFramePageid(int i) const;
 		bool getValid(int i) const;
 		void plusUsedCount(int i);
+        void updateTime(int i, int cycle);
 };
 
 #endif

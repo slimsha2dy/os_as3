@@ -115,7 +115,15 @@ void	Kernel::excute(void)
 	// running process command
 	this->mode = "user";
 	string command = (this->tmp)->readCommand();
-	if (command != "run")
+    if (this->tmp->getCommand() == "memory_read" || this->tmp->getCommand() == "memory_write")
+    {
+        // update access time and count
+        int idx = (this->tmp->getVmemory()).findPageId(stoi(this->tmp->getArgument()));
+        int add = (this->tmp->getVmemory()).findAddress(idx);
+        (this->pmemory).plusUsedCount(add);
+        (this->pmemory).updateTime(add, this->cycle);
+    }
+	if (command != "run" && command != "memory_read" && command != "memory_write")
 	{
 		this->syscallFlag = 1;
 		this->syscallCommand = command;
@@ -152,6 +160,7 @@ void	Kernel::syscall(void)
 			}
 			tmp = tmp->getNext();
 		}
+        memory_release_all();
 		this->terProcess = this->tmp;
 		this->tmp = 0;
 		this->exitCount++;
@@ -184,6 +193,24 @@ void	Kernel::syscall(void)
     else if (this->syscallCommand == "memory_release")
     {
         this->memory_release();
+        (this->tmp)->changeState("ready");
+        this->pushRq(this->tmp);
+        this->tmp = 0;
+    }
+
+    // page fault
+    else if (this->syscallCommand == "page_fault")
+    {
+        this->page_fault();
+        (this->tmp)->changeState("ready");
+        this->pushRq(this->tmp);
+        this->tmp = 0;
+    }
+
+    // protection fault
+    else if (this->syscallCommand == "protection_fault")
+    {
+        this->protection_fault();
         (this->tmp)->changeState("ready");
         this->pushRq(this->tmp);
         this->tmp = 0;
@@ -236,26 +263,128 @@ void	Kernel::memory_allocate(void)
     // allocate to virtual memory
 	this->tmp->allocVmem();
     // allocate to physical memory
-	(this->pmemory).allocPmem(stoi(this->tmp->getArgument()), this->tmp->getVmemory(), this->tmp->getAllocid(), this->tmp->getPid(), this->policy, this->cycle);
+	(this->pmemory).allocPmem(stoi(this->tmp->getArgument()), this->tmp, this->headRq, this->headWq, this->tmp->getAllocid(), this->tmp->getPid(), this->policy, this->cycle);
 }
 
 void    Kernel::memory_release(void)
 {
     Process *buf = this->headRq;
     int id = stoi(this->tmp->getArgument());
-    // R -> W
-    while (buf)
-    {
-        (buf->getVmemory()).permTowrite(id);
+    // if permission of allocation id is read, all shared allocation id change to write
+    if (!(this->tmp->getVmemory()).getPermofAlloc(id)) {
+        // R -> W
+        while (buf) {
+            (buf->getVmemory()).permTowrite(id);
+            buf = buf->getNext();
+        }
+        buf = this->headWq;
+        while (buf) {
+            (buf->getVmemory()).permTowrite(id);
+            buf = buf->getNext();
+        }
+    }
+    // memory release
+    this->tmp->memoryRelease(id, this->pmemory);
+}
+
+void    Kernel::memory_release_all(void)
+{
+    for (int id = 0; id <= this->tmp->getLastAlloc(); ++id) {
+        if (!(this->tmp->getVmemory()).getPermofAlloc(id)) {
+            // R -> W
+            Process *buf = this->headRq;
+            while (buf) {
+                (buf->getVmemory()).permTowrite(id);
+                buf = buf->getNext();
+            }
+            buf = this->headWq;
+            while (buf) {
+                (buf->getVmemory()).permTowrite(id);
+                buf = buf->getNext();
+            }
+        }
+
+        // memory release
+        this->tmp->memoryRelease(id, this->pmemory);
+    }
+}
+
+void Kernel::page_fault(void)
+{
+    // allocate to physical memory and write to page table
+    (this->pmemory).faultHandle(this->tmp, this->headRq, this->headWq, this->tmp->getPid(), this->policy, this->cycle, stoi(this->tmp->getArgument()));
+}
+
+void Kernel::protection_fault(void)
+{
+    // all shared page's permission to write
+    int pageid = stoi(this->tmp->getArgument());
+    Process *buf = this->headRq;
+    while (buf) {
+        (buf->getVmemory()).permTowritePage(pageid);
         buf = buf->getNext();
     }
     buf = this->headWq;
-    while (buf)
-    {
-        (buf->getVmemory()).permTowrite(id);
+    while (buf) {
+        (buf->getVmemory()).permTowritePage(pageid);
         buf = buf->getNext();
     }
-
-    // memory release
-    this->tmp->memoryRelease(id, this->pmemory);
+    // if parent, change permission
+    if (this->tmp->getPid() == 1)
+    {
+        (this->tmp->getVmemory()).permTowritePage(pageid);
+        int idx = (this->tmp->getVmemory()).findPageId(pageid);
+        if (!(this->tmp->getVmemory()).getValid(idx)) {
+            (this->pmemory).faultHandle(this->tmp, this->headRq, this->headWq, this->tmp->getPid(), this->policy, this->cycle, pageid);
+        }
+        // update count and access time
+        int add = (this->tmp->getVmemory()).getAddress(idx);
+        (this->pmemory).plusUsedCount(add);
+        (this->pmemory).updateTime(add, this->cycle);
+        // invalid shared page of child
+        buf = this->headRq;
+        while (buf) {
+            idx = (buf->getVmemory()).findAddress(add);
+            if (idx != -1 && (buf->getVmemory()).getCopied(idx)) {
+                (buf->getVmemory()).unvalid(idx);
+                (buf->getVmemory()).setCopied(idx, 0);  // copied bit to false
+            }
+            buf = buf->getNext();
+        }
+        buf = this->headWq;
+        while (buf) {
+            idx = (buf->getVmemory()).findAddress(add);
+            if (idx != -1 && (buf->getVmemory()).getCopied(idx)) {
+                (buf->getVmemory()).unvalid(idx);
+                (buf->getVmemory()).setCopied(idx, 0);  // copied bit to false
+            }
+            buf = buf->getNext();
+        }
+    }
+    // if not, allocate new frame
+    else
+    {
+        // copied bit to false
+        int idx = (this->tmp->getVmemory()).findPageId(pageid);
+        int add = (this->tmp->getVmemory()).getAddress(idx);
+        buf = this->headRq;
+        while (buf) {
+            idx = (buf->getVmemory()).findAddress(add);
+            if (idx != -1 && (buf->getVmemory()).getCopied(idx)) {
+                (buf->getVmemory()).setCopied(idx, 0);  // copied bit to false
+            }
+            buf = buf->getNext();
+        }
+        buf = this->headWq;
+        while (buf) {
+            idx = (buf->getVmemory()).findAddress(add);
+            if (idx != -1 && (buf->getVmemory()).getCopied(idx)) {
+                (buf->getVmemory()).setCopied(idx, 0);  // copied bit to false
+            }
+            buf = buf->getNext();
+        }
+        // allocate page
+        (this->tmp->getVmemory()).permTowritePage(pageid);
+        (this->pmemory).faultHandle(this->tmp, this->headRq, this->headWq, this->tmp->getPid(), this->policy, this->cycle, pageid);
+    }
 }
