@@ -1,11 +1,14 @@
 memory_allocate 16
 fork_and_exec program1
-memory_write 0
 wait
-memory_read 1
+memory_read 10
 fork_and_exec program2
+memory_read 5
 fork_and_exec program3
-memory_allocate 1
+memory_write 10
+memory_read 0
 wait
+memory_read 3
 wait
+memory_read 10
 exit
